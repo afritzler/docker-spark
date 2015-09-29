@@ -5,7 +5,7 @@ Docker container for running Spark in standalone cluster mode.
 Building the image:
 
 ```
-docker build sap/spark-standalone .
+docker build -t sap/spark-standalone .
 ```
 
 Running the image:
