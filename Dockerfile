@@ -11,7 +11,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install oracle-java7-installer ora
 RUN apt-get -y install curl
 
 #Download SPARK
-RUN curl -s http://www.eu.apache.org/dist/spark/spark-1.5.1/spark-1.5.1-bin-hadoop2.6.tgz | tar -xz -C /usr/local/
+RUN curl -s http://mirror.serversupportforum.de/apache/spark/spark-1.5.1/spark-1.5.1-bin-hadoop2.6.tgz | tar -xz -C /usr/local/
 RUN cd /usr/local && ln -s spark-1.5.1-bin-hadoop2.6 spark
 
 # Install SPARK JobServer
@@ -39,13 +39,16 @@ RUN git clone https://github.com/spark-jobserver/spark-jobserver.git /tmp/spark-
 WORKDIR /tmp/spark-jobserver
 ## Comment out all tests
 RUN sed -r -i "s/\/\/ test/test/g" project/Assembly.scala
-RUN  sbt job-server/assembly
+RUN  sbt assembly
 RUN	mkdir -p $SPARK_SERVER_HOME && \
 	cp /tmp/spark-jobserver/bin/server_start.sh $SPARK_SERVER_HOME && \
 	cp /tmp/spark-jobserver/bin/server_stop.sh $SPARK_SERVER_HOME && \
-	cp /tmp/spark-jobserver/job-server/target/scala-2.10/spark-job-server.jar $SPARK_SERVER_HOME
+	cp /tmp/spark-jobserver/job-server-extras/target/scala-2.10/spark-job-server.jar $SPARK_SERVER_HOME
 
-
+# cleanup build artefacts
+RUN sbt clean clean-files
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # upload JobServer config
 ADD config/log4j-server.properties $SPARK_SERVER_HOME/log4j-server.properties
@@ -69,12 +72,9 @@ ENV SPARK_WORKER_PORT 8888
 ENV SPARK_WORKER_WEBUI_PORT 8081
 ENV SPARK_WORKER_CORE=5
 
-# Clean up
-RUN apt-get clean
-RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 # Port of the JobServer
-EXPOSE 8090 8080 4040 8081
+EXPOSE 8090
+
 
 WORKDIR /
-CMD ["./start-all.sh"]
+CMD ["/start-all.sh"]
