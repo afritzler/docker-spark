@@ -1,6 +1,8 @@
 FROM ubuntu:14.04
 MAINTAINER Andreas Fritzler <andreas.fritzler@gmail.com>
 
+ENV SPARK_VERSION 1.5.2
+
 RUN apt-get -y update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes software-properties-common python-software-properties
 RUN apt-add-repository -y ppa:webupd8team/java
@@ -8,11 +10,13 @@ RUN apt-get -y update
 RUN /bin/echo debconf shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install oracle-java7-installer oracle-java7-set-default
 
+
+
 RUN apt-get -y install curl
 
 #Download SPARK
-RUN curl -s http://mirror.serversupportforum.de/apache/spark/spark-1.5.1/spark-1.5.1-bin-hadoop2.6.tgz | tar -xz -C /usr/local/
-RUN cd /usr/local && ln -s spark-1.5.1-bin-hadoop2.6 spark
+RUN curl -s http://mirror.serversupportforum.de/apache/spark/spark-"$SPARK_VERSION"/spark-"$SPARK_VERSION"-bin-hadoop2.6.tgz | tar -xz -C /usr/local/
+RUN cd /usr/local && ln -s spark-"$SPARK_VERSION"-bin-hadoop2.6 spark
 
 # Install SPARK JobServer
 
@@ -73,7 +77,7 @@ ENV SPARK_WORKER_WEBUI_PORT 8081
 ENV SPARK_WORKER_CORE=5
 
 # Port of the JobServer
-EXPOSE 8090
+EXPOSE 8090 4040 8080 8081
 
 
 WORKDIR /
